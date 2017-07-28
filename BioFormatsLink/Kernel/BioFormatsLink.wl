@@ -81,18 +81,38 @@ ReadCoreMetadata[file_?StringQ] :=
 		Map[
 			First@
 				StringReplace[#, StartOfString ~~ token__ ~~ " = " ~~ value__ ~~ EndOfString :>
-                    (StringTrim[token] ->
+					(StringTrim[token] ->
 						If[ StringMatchQ[value, NumberString],
 							ToExpression[value]
 							,
 							value
 						]
-                    )
+					)
 				] &,
 			Map[Rest, StringSplit[StringSplit[StringTake[metastring, {2, -2}], ", "], "\n"]],
 			{2}
 		]
 	];
+
+$BioFormatsAvailableElements = {"ImageList", "Metadata"};
+
+GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
+
+GetBioFormatsImageList[file_] := "ImageList" -> ReadImage[file];
+
+GetBioFormatsMetadata[file_] := "Metadata" -> ReadCoreMetadata[file];
+
+ImportExport`RegisterImport["BioFormats",
+	{
+		"ImageList" :> GetBioFormatsImageList,
+		"Metadata" :> GetBioFormatsMetadata,
+		"Elements" :> GetBioFormatsElements,
+		GetBioFormatsElements
+	},
+	"BinaryFormat" -> True,
+	"AvailableElements" -> $BioFormatsAvailableElements,
+	"DefaultElement" -> "ImageList"
+];
 
 End[];
 EndPackage[];

@@ -1,0 +1,225 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      7753,        217]
+NotebookOptionsPosition[      5915,        181]
+NotebookOutlinePosition[      6258,        196]
+CellTagsIndexPosition[      6215,        193]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Sample Data", "Subsection",
+ CellChangeTimes->{{3.7102213947258806`*^9, 
+  3.710221406446529*^9}},ExpressionUUID->"a85e55ae-1c46-4858-a27c-\
+28306744c88e"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "url", "=", 
+   "\"\<http://www.loci.wisc.edu/files/software/data/embryo2.zip\>\""}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"progress", "=", " ", "0."}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"progFunction", "[", 
+   RowBox[{"_", ",", " ", "\"\<progress\>\"", ",", " ", 
+    RowBox[{"{", 
+     RowBox[{"dlnow_", ",", " ", "dltotal_", ",", " ", "_", ",", " ", "_"}], 
+     "}"}]}], "]"}], ":=", " ", 
+  RowBox[{"Quiet", "[", 
+   RowBox[{"progress", " ", "=", " ", 
+    RowBox[{"dlnow", "/", "dltotal"}]}], "]"}]}]}], "Input",
+ CellChangeTimes->{
+  3.7102213181219745`*^9},ExpressionUUID->"c0946d5e-814b-46e8-ad04-\
+f3500a2b5e1b"],
+
+Cell[BoxData[
+ RowBox[{"Dynamic", "[", 
+  RowBox[{"ProgressIndicator", "[", "progress", "]"}], "]"}]], "Input",Express\
+ionUUID->"27201c42-b152-40d7-abe3-59e8573e0586"],
+
+Cell[BoxData[
+ RowBox[{"URLSaveAsynchronous", "[", 
+  RowBox[{"url", ",", " ", 
+   RowBox[{"FileNameJoin", "[", 
+    RowBox[{"{", 
+     RowBox[{"$UserDocumentsDirectory", ",", " ", "\"\<embryo2.zip\>\""}], 
+     "}"}], "]"}], ",", " ", "progFunction", ",", " ", 
+   RowBox[{"\"\<Progress\>\"", "\[Rule]", "True"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.710220950696994*^9, 3.710220958012452*^9}, {
+  3.7102210839364767`*^9, 3.710221109326025*^9}, {3.7102212315150023`*^9, 
+  3.710221235063882*^9}, {3.7102213408195724`*^9, 
+  3.7102213566741524`*^9}},ExpressionUUID->"043e14c7-48d6-4b28-b2cd-\
+f421d55b6164"],
+
+Cell[BoxData[
+ RowBox[{"filePaths", "=", 
+  RowBox[{"ExtractArchive", "[", 
+   RowBox[{
+    RowBox[{"FileNameJoin", "[", 
+     RowBox[{"{", 
+      RowBox[{"$UserDocumentsDirectory", ",", " ", "\"\<embryo2.zip\>\""}], 
+      "}"}], "]"}], ",", "$UserDocumentsDirectory"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.7102216356196957`*^9, 
+  3.7102216835447893`*^9}},ExpressionUUID->"1da59a94-3e16-4ac5-a2b7-\
+c6edc2f66ae4"],
+
+Cell[BoxData[
+ RowBox[{"filePath", "=", 
+  RowBox[{"filePaths", "[", 
+   RowBox[{"[", "1", "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.7102217944708843`*^9, 
+  3.7102218040610075`*^9}},ExpressionUUID->"c9a38549-0eed-43e2-9360-\
+b6a832507cd0"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "filePath", "=", "\"\<C:\\\\Users\\\\Piotr\\\\Documents\\\\embryo2\>\""}], 
+  ";"}]], "Input",
+ CellChangeTimes->{{3.7102203651422653`*^9, 3.71022037007839*^9}, {
+   3.710220411332141*^9, 3.7102204368569174`*^9}, 
+   3.71022181837261*^9},ExpressionUUID->"7d23d8ad-464c-4de3-903e-\
+3f3f0c296359"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Read Elements", "Subsection",
+ CellChangeTimes->{{3.710221422025346*^9, 3.7102214253795357`*^9}, {
+  3.710232596248918*^9, 
+  3.710232599322341*^9}},ExpressionUUID->"6e9b2bfd-b645-48fd-b26b-\
+64572a1af478"],
+
+Cell[BoxData[
+ RowBox[{"Import", "[", 
+  RowBox[{"None", ",", " ", 
+   RowBox[{"{", 
+    RowBox[{"\"\<BioFormats\>\"", ",", " ", "\"\<Elements\>\""}], "}"}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.710232607767373*^9, 
+  3.710232615343583*^9}},ExpressionUUID->"60422bb3-b84d-4533-b0eb-\
+673b8a337cdf"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Read Image", "Subsection",
+ CellChangeTimes->{{3.710221422025346*^9, 
+  3.7102214253795357`*^9}},ExpressionUUID->"512a47e6-5681-4d65-b1c2-\
+9b2f0b09664c"],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BioFormatsLink`\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.7102203312725143`*^9, 
+  3.710220337935851*^9}},ExpressionUUID->"521578af-e490-44a3-8b55-\
+21e3c1f7bd3a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"embryo", "=", 
+   RowBox[{"BlockMap", "[", 
+    RowBox[{"ColorCombine", ",", 
+     RowBox[{"First", "@", 
+      RowBox[{"Import", "[", 
+       RowBox[{"filePath", ",", " ", "\"\<BioFormats\>\""}], "]"}]}], ",", 
+     "3"}], "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.7102203836252747`*^9, 3.7102203922474885`*^9}, {
+  3.7102237812588735`*^9, 3.7102237843598228`*^9}, {3.710232553729948*^9, 
+  3.7102325609327965`*^9}},ExpressionUUID->"c6d7abeb-df67-4f3c-879e-\
+0b48539aa40b"],
+
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", 
+  RowBox[{
+   RowBox[{"ImageAdjust", "[", 
+    RowBox[{"embryo", "\[LeftDoubleBracket]", "k", "\[RightDoubleBracket]"}], 
+    "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"k", ",", "1", ",", 
+     RowBox[{"Length", "[", "embryo", "]"}], ",", "1"}], "}"}]}], 
+  "]"}]], "Input",ExpressionUUID->"ba2e1105-10f2-4256-ac98-31085b383ed3"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Read Metadata", "Subsection",
+ CellChangeTimes->{{3.710221422025346*^9, 
+  3.710221433975211*^9}},ExpressionUUID->"c53a120f-69db-4179-b919-\
+305188f61916"],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BioFormatsLink`\>\"", "]"}]], "Input",ExpressionUU\
+ID->"90831b8b-aaf2-4f27-b694-79901a3a8635"],
+
+Cell[BoxData[
+ RowBox[{"First", "@", 
+  RowBox[{"Import", "[", 
+   RowBox[{"filePath", ",", "  ", 
+    RowBox[{"{", 
+     RowBox[{"\"\<BioFormats\>\"", ",", " ", "\"\<Metadata\>\""}], "}"}]}], 
+   "]"}]}]], "Input",
+ CellChangeTimes->{
+  3.710220471095227*^9, {3.710223798769579*^9, 3.7102237999216747`*^9}, {
+   3.7102325853655667`*^9, 3.710232586174837*^9}, {3.710232637761404*^9, 
+   3.7102326438481283`*^9}},ExpressionUUID->"b97f275b-799f-46fa-81f5-\
+d7edd1f5f1f9"]
+}, Open  ]]
+},
+WindowSize->{759, 833},
+WindowMargins->{{511, Automatic}, {Automatic, 84}},
+FrontEndVersion->"11.2 for Microsoft Windows (64-bit) (July 21, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 161, 3, 43, "Subsection",ExpressionUUID->"a85e55ae-1c46-4858-a27c-28306744c88e"],
+Cell[744, 27, 695, 19, 88, "Input",ExpressionUUID->"c0946d5e-814b-46e8-ad04-f3500a2b5e1b"],
+Cell[1442, 48, 168, 3, 30, "Input",ExpressionUUID->"27201c42-b152-40d7-abe3-59e8573e0586"],
+Cell[1613, 53, 611, 12, 50, "Input",ExpressionUUID->"043e14c7-48d6-4b28-b2cd-f421d55b6164"],
+Cell[2227, 67, 420, 10, 50, "Input",ExpressionUUID->"1da59a94-3e16-4ac5-a2b7-c6edc2f66ae4"],
+Cell[2650, 79, 246, 6, 30, "Input",ExpressionUUID->"c9a38549-0eed-43e2-9360-b6a832507cd0"],
+Cell[2899, 87, 332, 8, 30, "Input",ExpressionUUID->"7d23d8ad-464c-4de3-903e-3f3f0c296359"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3268, 100, 212, 4, 43, "Subsection",ExpressionUUID->"6e9b2bfd-b645-48fd-b26b-64572a1af478"],
+Cell[3483, 106, 305, 8, 30, "Input",ExpressionUUID->"60422bb3-b84d-4533-b0eb-673b8a337cdf"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3825, 119, 160, 3, 43, "Subsection",ExpressionUUID->"512a47e6-5681-4d65-b1c2-9b2f0b09664c"],
+Cell[3988, 124, 208, 4, 30, "Input",ExpressionUUID->"521578af-e490-44a3-8b55-21e3c1f7bd3a"],
+Cell[4199, 130, 515, 12, 30, "Input",ExpressionUUID->"c6d7abeb-df67-4f3c-879e-0b48539aa40b"],
+Cell[4717, 144, 372, 9, 30, "Input",ExpressionUUID->"ba2e1105-10f2-4256-ac98-31085b383ed3"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[5126, 158, 161, 3, 43, "Subsection",ExpressionUUID->"c53a120f-69db-4179-b919-305188f61916"],
+Cell[5290, 163, 137, 2, 30, "Input",ExpressionUUID->"90831b8b-aaf2-4f27-b694-79901a3a8635"],
+Cell[5430, 167, 469, 11, 30, "Input",ExpressionUUID->"b97f275b-799f-46fa-81f5-d7edd1f5f1f9"]
+}, Open  ]]
+}
+]
+*)
+
