@@ -1,0 +1,38 @@
+<project name="BioFormatsLink" default="build" basedir="..">
+
+	<property name="rootdir" value="${basedir}" />
+	<property name="dist" value="${basedir}/build" />
+	<property name="properties" value="scripts/build-local.properties" />
+	<property name="pacletName" value="BioFormatsLink" />
+
+	<target name="clean">
+		<delete dir="${dist}" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${dist}" />
+	</target>
+
+	<target name="createDirs">
+		<copy todir="${dist}/${pacletName}" >  
+		    <fileset dir="${rootdir}">  
+		    	<include name="Java/**"/>
+		    </fileset>
+			<fileset dir="${rootdir}/${pacletName}" includes="**"/>  
+		</copy>
+		<copy todir="${dist}/${pacletName}" file="${rootdir}/PacletInfo.m" />
+	</target>
+
+	<target name="createZips">
+		<zip destfile="${dist}/${pacletName}.zip">
+			<zipfileset dir="${dist}/${pacletName}" prefix="${pacletName}"/>
+		</zip>
+
+	</target>
+
+	<target name="build" depends="clean,init">
+		<antcall target="createDirs" />
+		<antcall target="createZips" />
+	</target>
+
+</project>

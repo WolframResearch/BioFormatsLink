@@ -1,0 +1,8 @@
+.project
+*~
+build/
+.settings/
+.idea/
+*.iml
+.WolframResources
+.externalToolBuilders/
