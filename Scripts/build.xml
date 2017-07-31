@@ -18,9 +18,11 @@
 		    <fileset dir="${rootdir}">  
 		    	<include name="Java/**"/>
 		    </fileset>
-			<fileset dir="${rootdir}/${pacletName}" includes="**"/>  
+            <fileset dir="${rootdir}/${pacletName}">
+                <include name="Kernel/**"/>
+            </fileset>
 		</copy>
-		<copy todir="${dist}/${pacletName}" file="${rootdir}/PacletInfo.m" />
+		<copy todir="${dist}/${pacletName}" file="${rootdir}/${pacletName}/PacletInfo.m" />
 	</target>
 
 	<target name="createZips">
