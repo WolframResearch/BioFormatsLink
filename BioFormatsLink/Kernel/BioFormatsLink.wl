@@ -94,18 +94,18 @@ ReadCoreMetadata[file_?StringQ] :=
 		]
 	];
 
-$BioFormatsAvailableElements = {"ImageList", "Metadata"};
+$BioFormatsAvailableElements = {"ImageList", "MetaInformation"};
 
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
 GetBioFormatsImageList[file_] := "ImageList" -> ReadImage[file];
 
-GetBioFormatsMetadata[file_] := "Metadata" -> ReadCoreMetadata[file];
+GetBioFormatsMetaInformation[file_] := "MetaInformation" -> ReadCoreMetadata[file];
 
 ImportExport`RegisterImport["BioFormats",
 	{
 		"ImageList" :> GetBioFormatsImageList,
-		"Metadata" :> GetBioFormatsMetadata,
+		"MetaInformation" :> GetBioFormatsMetaInformation,
 		"Elements" :> GetBioFormatsElements,
 		GetBioFormatsElements
 	},
