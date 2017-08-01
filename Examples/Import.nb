@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[      8047,        223]
-NotebookOptionsPosition[      6116,        186]
-NotebookOutlinePosition[      6459,        201]
-CellTagsIndexPosition[      6416,        198]
+NotebookDataLength[      9453,        259]
+NotebookOptionsPosition[      7204,        217]
+NotebookOutlinePosition[      7547,        232]
+CellTagsIndexPosition[      7504,        229]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -160,9 +160,10 @@ Cell[BoxData[
 
 Cell[CellGroupData[{
 
-Cell["Read Metadata", "Subsection",
- CellChangeTimes->{{3.710221422025346*^9, 
-  3.710221433975211*^9}},ExpressionUUID->"c53a120f-69db-4179-b919-\
+Cell["Read Original Metadata", "Subsection",
+ CellChangeTimes->{{3.710221422025346*^9, 3.710221433975211*^9}, {
+  3.7106046650236588`*^9, 
+  3.710604665560047*^9}},ExpressionUUID->"c53a120f-69db-4179-b919-\
 305188f61916"],
 
 Cell[BoxData[
@@ -174,14 +175,44 @@ Cell[BoxData[
   RowBox[{"Import", "[", 
    RowBox[{"filePath", ",", "  ", 
     RowBox[{"{", 
-     RowBox[{"\"\<BioFormats\>\"", ",", " ", "\"\<MetaInformation\>\""}], 
+     RowBox[{
+     "\"\<BioFormats\>\"", ",", " ", "\"\<OriginalMetaInformation\>\""}], 
      "}"}]}], "]"}]}]], "Input",
  CellChangeTimes->{
   3.710220471095227*^9, {3.710223798769579*^9, 3.7102237999216747`*^9}, {
    3.7102325853655667`*^9, 3.710232586174837*^9}, {3.710232637761404*^9, 
-   3.7102326438481283`*^9}, {3.710509049572131*^9, 
-   3.7105090508520193`*^9}},ExpressionUUID->"b97f275b-799f-46fa-81f5-\
+   3.7102326438481283`*^9}, {3.710509049572131*^9, 3.7105090508520193`*^9}, 
+   3.710604674834178*^9},ExpressionUUID->"b97f275b-799f-46fa-81f5-\
 d7edd1f5f1f9"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Read OME-XML Metadata", "Subsection",
+ CellChangeTimes->{{3.710221422025346*^9, 3.710221433975211*^9}, {
+  3.7106046650236588`*^9, 
+  3.710604684064805*^9}},ExpressionUUID->"11386666-02f3-4652-821e-\
+a6ecffe12546"],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BioFormatsLink`\>\"", "]"}]], "Input",ExpressionUU\
+ID->"b3e26161-d446-48c2-9638-df29b9e59930"],
+
+Cell[BoxData[
+ RowBox[{"First", "@", 
+  RowBox[{"Import", "[", 
+   RowBox[{"filePath", ",", "  ", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<BioFormats\>\"", ",", " ", "\"\<OMEXMLMetaInformation\>\""}], 
+     "}"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{
+  3.710220471095227*^9, {3.710223798769579*^9, 3.7102237999216747`*^9}, {
+   3.7102325853655667`*^9, 3.710232586174837*^9}, {3.710232637761404*^9, 
+   3.7102326438481283`*^9}, {3.710509049572131*^9, 3.7105090508520193`*^9}, {
+   3.710604674834178*^9, 
+   3.710604689145271*^9}},ExpressionUUID->"5e0b3e69-a13e-4f21-9e98-\
+16f7e1b2d32f"]
 }, Open  ]]
 },
 WindowSize->{759, 833},
@@ -221,9 +252,14 @@ Cell[4339, 134, 515, 12, 30, "Input",ExpressionUUID->"c6d7abeb-df67-4f3c-879e-0b
 Cell[4857, 148, 372, 9, 30, "Input",ExpressionUUID->"ba2e1105-10f2-4256-ac98-31085b383ed3"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[5266, 162, 161, 3, 43, "Subsection",ExpressionUUID->"c53a120f-69db-4179-b919-305188f61916"],
-Cell[5430, 167, 137, 2, 30, "Input",ExpressionUUID->"90831b8b-aaf2-4f27-b694-79901a3a8635"],
-Cell[5570, 171, 530, 12, 30, "Input",ExpressionUUID->"b97f275b-799f-46fa-81f5-d7edd1f5f1f9"]
+Cell[5266, 162, 221, 4, 43, "Subsection",ExpressionUUID->"c53a120f-69db-4179-b919-305188f61916"],
+Cell[5490, 168, 137, 2, 30, "Input",ExpressionUUID->"90831b8b-aaf2-4f27-b694-79901a3a8635"],
+Cell[5630, 172, 566, 13, 30, "Input",ExpressionUUID->"b97f275b-799f-46fa-81f5-d7edd1f5f1f9"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6233, 190, 220, 4, 43, "Subsection",ExpressionUUID->"11386666-02f3-4652-821e-a6ecffe12546"],
+Cell[6456, 196, 137, 2, 30, "Input",ExpressionUUID->"b3e26161-d446-48c2-9638-df29b9e59930"],
+Cell[6596, 200, 592, 14, 30, "Input",ExpressionUUID->"5e0b3e69-a13e-4f21-9e98-16f7e1b2d32f"]
 }, Open  ]]
 }
 ]

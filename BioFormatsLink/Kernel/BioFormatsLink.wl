@@ -4,7 +4,7 @@ BeginPackage["BioFormatsLink`", {"JLink`"}];
 
 Begin["`Private`"];
 
-ReadCoreMetadata::nffil = ReadImage::nffil = "File `1` not found.";
+ReadOMEXMLMetadata::nffil = ReadOriginalMetadata::nffil = ReadImage::nffil = "File `1` not found.";
 
 $BioFormatsLinkPath = ParentDirectory[DirectoryName[$InputFileName]];
 $BioFormatsJar = First@FileNames["bioformats_package.jar", FileNameJoin[{$BioFormatsLinkPath, "Java"}]];
@@ -68,16 +68,15 @@ ReadImage[file_?StringQ] :=
 		]
 	];
 
-(*Read core metadata*)
-ReadCoreMetadata[file_?StringQ] :=
-	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], reader, metastring},
+(*Read original metadata*)
+ReadOriginalMetadata[file_?StringQ] :=
+	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], metastring},
 		If[!Quiet[FileExistsQ[file] === True],
-			Message[ReadCoreMetadata::nffil, file];
+			Message[ReadOriginalMetadata::nffil, file];
 			Return[$Failed];
 		];
 		ir@setId[file];
-		reader = BufferedImageReader`makeBufferedImageReader[ir];
-		metastring = reader@getCoreMetadataList[]@toString[];
+		metastring = ir@getCoreMetadataList[]@toString[];
 		Map[
 			First@
 				StringReplace[#, StartOfString ~~ token__ ~~ " = " ~~ value__ ~~ EndOfString :>
@@ -94,18 +93,41 @@ ReadCoreMetadata[file_?StringQ] :=
 		]
 	];
 
-$BioFormatsAvailableElements = {"ImageList", "MetaInformation"};
+(*Read OME-XML metadata*)
+ReadOMEXMLMetadata[file_?StringQ] :=
+	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], factory, service, serviceClass, meta, metastring},
+		If[!Quiet[FileExistsQ[file] === True],
+			Message[ReadOMEXMLMetadata::nffil, file];
+			Return[$Failed];
+		];
+		factory = JLink`JavaNew[JLink`LoadJavaClass["loci.common.services.ServiceFactory"]];
+		LoadJavaClass["loci.formats.services.OMEXMLService"];
+		LoadJavaClass["com.wolfram.jlink.JLinkClassLoader"];
+		serviceClass = JLinkClassLoader`classFromName["loci.formats.services.OMEXMLService"];
+		service = factory@getInstance[serviceClass];
+		meta = service@createOMEXMLMetadata[];
+		ir@setMetadataStore[meta];
+		ir@setOriginalMetadataPopulated[False];
+		ir@setId[file];
+		metastring = service@getOMEXML[meta];
+		Return[{ImportString[metastring, "XML"]}];
+	];
+
+$BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalMetaInformation"};
 
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
 GetBioFormatsImageList[file_] := "ImageList" -> ReadImage[file];
 
-GetBioFormatsMetaInformation[file_] := "MetaInformation" -> ReadCoreMetadata[file];
+GetBioFormatsOriginalMetaInformation[file_] := "OriginalMetaInformation" -> ReadOriginalMetadata[file];
+
+GetBioFormatsOMEXMLMetaInformation[file_] := "OMEXMLMetaInformation" -> ReadOMEXMLMetadata[file];
 
 ImportExport`RegisterImport["BioFormats",
 	{
 		"ImageList" :> GetBioFormatsImageList,
-		"MetaInformation" :> GetBioFormatsMetaInformation,
+		"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation,
+		"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation,
 		"Elements" :> GetBioFormatsElements,
 		GetBioFormatsElements
 	},
