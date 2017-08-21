@@ -5,6 +5,8 @@ BeginPackage["BioFormatsLink`", {"JLink`"}];
 Begin["`Private`"];
 
 ReadOMEXMLMetadata::nffil = ReadOriginalMetadata::nffil = ReadImage::nffil = "File `1` not found.";
+ReadImage::serieserr = "Expecting a positive integer value smaller or equal to `1` instead of `2`.";
+ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmterr = ReadImage::fmterr = "Cannot import data as BioFormats format.";
 
 $BioFormatsLinkPath = ParentDirectory[DirectoryName[$InputFileName]];
 $BioFormatsJar = First@FileNames["bioformats_package.jar", FileNameJoin[{$BioFormatsLinkPath, "Java"}]];
@@ -15,69 +17,86 @@ JLink`LoadJavaClass["java.awt.image.BufferedImage"];
 JLink`LoadJavaClass["loci.formats.gui.BufferedImageReader"];
 
 (*Convert pixel types and color space.*)
-BioFormatToMathematicaTypeAndColorSpace[type_Integer] :=
+BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
 	Switch[type,
-		0, {"Real", Automatic},
-		10, {"Byte", "Grayscale"},
+		1|2|3|4|5|6|7, {"Byte", "RGB"},
+		8|9, {"Bit16", "RGB"},
+		10|12, {"Byte", "Grayscale"},
 		11, {"Bit16", "Grayscale"},
-		12, {"Byte", "Grayscale"},
-		_, {"Byte", "RGB"}
+		_, {"Real", Automatic}
 	];
 
 (* Read image.*)
-ReadImage[file_?StringQ] :=
+ReadImage[file_?StringQ, series_:1] :=
 	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]],
-		reader, image, raster, series, channels, timeSeries, slices, index, height, width, type, stack, colorspace = Automatic},
+		reader, image, raster, pixels, channels, bands, timeSeries, slices, index, height, width, type, colorspace = Automatic, res},
 		If[!Quiet[FileExistsQ[file] === True],
 			Message[ReadImage::nffil, file];
 			Return[$Failed];
 		];
-		ir@setId[file];
-		reader = BufferedImageReader`makeBufferedImageReader[ir];
-		series = reader@getSeriesCount[];
-		channels = reader@getEffectiveSizeC[];
-		timeSeries = reader@getSizeT[];
-		slices = reader@getSizeZ[];
-		Table[
-			stack = Table[
-				ColorCombine[
-					Table[
-						index = reader@getIndex[z, c, t];
-						image = reader@openImage[index];
-						raster = image@getRaster[];
-						height = image@getHeight[];
-						width = image@getWidth[];
-						{type, colorspace} = BioFormatToMathematicaTypeAndColorSpace[image@getType[]];
-						Image[
-							ArrayReshape[
-								raster@getPixels[0, 0, width, height,
-									JLink`JavaNew["[I", width * height]], {height, width}],
-							type],
-						{c, 0, channels - 1}
+		Quiet[ir@setId[file]];
+		If[!Internal`PositiveMachineIntegerQ[series] || series > ir@getSeriesCount[],
+			Message[ReadImage::serieserr, ir@getSeriesCount[], series];
+			Return[$Failed];
+		];
+		Quiet[
+			ir@setSeries[series - 1];
+			reader = BufferedImageReader`makeBufferedImageReader[ir];
+			channels = reader@getEffectiveSizeC[];
+			timeSeries = reader@getSizeT[];
+			slices = reader@getSizeZ[];
+		];
+		If[!VectorQ[{channels, timeSeries, slices}, Internal`PositiveMachineIntegerQ],
+			Message[ReadImage::fmterr];
+			Return[$Failed];
+		];
+		res = Quiet[
+			Table[
+				Table[
+					ColorCombine[
+						Table[
+							index = reader@getIndex[z, c, t];
+							image = reader@openImage[index];
+							raster = image@getRaster[];
+							height = image@getHeight[];
+							width = image@getWidth[];
+							{type, colorspace} = BioFormatsToMathematicaTypeAndColorSpace[image@getType[]];
+							bands = raster@getNumBands[];
+							pixels = Map[ArrayReshape[raster@getSamples[0, 0, width, height, #, JLink`JavaNew["[I", width * height]],{height, width}]&, Range[0,bands-1]];
+							Image[pixels, type, ColorSpace->colorspace, Interleaving -> False],
+							{c, 0, channels - 1}
+						],
+						colorspace
 					],
-					colorspace
+					{z, 0, slices - 1}
 				],
-				{z, 0, slices - 1}
-			];
-			If[slices > 1,
-				Map[Image, stack, {-1}]
-				,
-				Image @@ stack
-			],
-			{t, 0, timeSeries - 1}
+				{t, 0, timeSeries - 1}
+			]
+		];
+		If[!(ImageQ[res] || ArrayQ[res, _, ImageQ]),
+			Message[ReadImage::fmterr];
+			Return[$Failed];
+			,
+			Return[res];
 		]
 	];
 
 (*Read original metadata*)
 ReadOriginalMetadata[file_?StringQ] :=
-	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], metastring},
+	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], metastring, res},
 		If[!Quiet[FileExistsQ[file] === True],
 			Message[ReadOriginalMetadata::nffil, file];
 			Return[$Failed];
 		];
-		ir@setId[file];
-		metastring = ir@getCoreMetadataList[]@toString[];
-		Map[
+		Quiet[
+			ir@setId[file];
+			metastring = ir@getCoreMetadataList[]@toString[];
+		];
+		If[!(StringQ[metastring] && StringLength[metastring] > 0),
+			Message[ReadOriginalMetadata::fmterr];
+			Return[$Failed];
+		];
+		res = Quiet[Map[
 			First@
 				StringReplace[#, StartOfString ~~ token__ ~~ " = " ~~ value__ ~~ EndOfString :>
 					(StringTrim[token] ->
@@ -90,7 +109,13 @@ ReadOriginalMetadata[file_?StringQ] :=
 				] &,
 			Map[Rest, StringSplit[StringSplit[StringTake[metastring, {2, -2}], ", "], "\n"]],
 			{2}
-		]
+		]];
+		If[!(ArrayQ[res, _, Head[#] === Rule&] && Length[res] > 0),
+			Message[ReadOriginalMetadata::fmterr];
+			Return[$Failed];
+			,
+			Return[res];
+		];
 	];
 
 (*Read OME-XML metadata*)
@@ -100,17 +125,23 @@ ReadOMEXMLMetadata[file_?StringQ] :=
 			Message[ReadOMEXMLMetadata::nffil, file];
 			Return[$Failed];
 		];
-		factory = JLink`JavaNew[JLink`LoadJavaClass["loci.common.services.ServiceFactory"]];
-		LoadJavaClass["loci.formats.services.OMEXMLService"];
-		LoadJavaClass["com.wolfram.jlink.JLinkClassLoader"];
-		serviceClass = JLinkClassLoader`classFromName["loci.formats.services.OMEXMLService"];
-		service = factory@getInstance[serviceClass];
-		meta = service@createOMEXMLMetadata[];
-		ir@setMetadataStore[meta];
-		ir@setOriginalMetadataPopulated[False];
-		ir@setId[file];
-		metastring = service@getOMEXML[meta];
-		Return[{ImportString[metastring, "XML"]}];
+		Quiet[
+			factory = JLink`JavaNew[JLink`LoadJavaClass["loci.common.services.ServiceFactory"]];
+			LoadJavaClass["loci.formats.services.OMEXMLService"];
+			LoadJavaClass["com.wolfram.jlink.JLinkClassLoader"];
+			serviceClass = JLinkClassLoader`classFromName["loci.formats.services.OMEXMLService"];
+			service = factory@getInstance[serviceClass];
+			meta = service@createOMEXMLMetadata[];
+			ir@setMetadataStore[meta];
+			ir@setOriginalMetadataPopulated[False];
+			ir@setId[file];
+			metastring = service@getOMEXML[meta];
+		];
+		If[!(StringQ[metastring] && StringLength[metastring] > 0),
+			Message[ReadOMEXMLMetadata::fmterr];
+			Return[$Failed];
+		];
+		Return[ImportString[metastring, "XML"]];
 	];
 
 $BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalMetaInformation"};
