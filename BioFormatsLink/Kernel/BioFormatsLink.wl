@@ -6,7 +6,7 @@ Begin["`Private`"];
 
 ReadOMEXMLMetadata::nffil = ReadOriginalMetadata::nffil = ReadImage::nffil = "File `1` not found.";
 ReadImage::serieserr = "Expecting a positive integer value smaller or equal to `1` instead of `2`.";
-ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmterr = ReadImage::fmterr = "Cannot import data as BioFormats format.";
+ReadSeriesCount::fmterr = ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmterr = ReadImage::fmterr = "Cannot import data as BioFormats format.";
 
 $BioFormatsLinkPath = ParentDirectory[DirectoryName[$InputFileName]];
 $BioFormatsJar = First@FileNames["bioformats_package.jar", FileNameJoin[{$BioFormatsLinkPath, "Java"}]];
@@ -26,17 +26,39 @@ BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
 		_, {"Real", Automatic}
 	];
 
+(* Read the number of series.*)
+ReadSeriesCount[file_?StringQ] :=
+	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], res},
+		If[!Quiet[FileExistsQ[file] === True],
+			Message[ReadSeriesCount::nffil, file];
+			Return[$Failed];
+		];
+		Quiet[
+			ir@setId[file];
+			res = ir@getSeriesCount[];
+		];
+		If[!Internal`PositiveMachineIntegerQ[res],
+			Message[ReadSeriesCount::fmterr];
+			Return[$Failed];
+			,
+			Return[res];
+		];
+	];
+
 (* Read image.*)
 ReadImage[file_?StringQ, series_:1] :=
 	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]],
-		reader, image, raster, pixels, channels, bands, timeSeries, slices, index, height, width, type, colorspace = Automatic, res},
+		reader, image, raster, pixels, channels, bands, timeSeries, slices, index, height, width, type, colorspace = Automatic, seriesCount, res},
 		If[!Quiet[FileExistsQ[file] === True],
 			Message[ReadImage::nffil, file];
 			Return[$Failed];
 		];
-		Quiet[ir@setId[file]];
-		If[!Internal`PositiveMachineIntegerQ[series] || series > ir@getSeriesCount[],
-			Message[ReadImage::serieserr, ir@getSeriesCount[], series];
+		Quiet[
+			ir@setId[file];
+			seriesCount = ir@getSeriesCount[];
+		];
+		If[!(Internal`PositiveMachineIntegerQ[series] && series <= seriesCount),
+			Message[ReadImage::serieserr, seriesCount, series];
 			Return[$Failed];
 		];
 		Quiet[
@@ -144,11 +166,21 @@ ReadOMEXMLMetadata[file_?StringQ] :=
 		Return[ImportString[metastring, "XML"]];
 	];
 
-$BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalMetaInformation"};
+$BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalMetaInformation", "SeriesCount"};
 
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
-GetBioFormatsImageList[file_] := "ImageList" -> ReadImage[file];
+GetBioFormatsSeriesCount[file_] := "SeriesCount" -> ReadSeriesCount[file];
+
+GetBioFormatsImageList[file_, series_] := Block[{seriesCount, res},
+	If[series === All,
+		seriesCount = ReadSeriesCount[file];
+		res = Map[ReadImage[file, #]&, Range[seriesCount]];
+		,
+		res = ReadImage[file, series];
+	];
+	Return["ImageList" -> res];
+];
 
 GetBioFormatsOriginalMetaInformation[file_] := "OriginalMetaInformation" -> ReadOriginalMetadata[file];
 
@@ -156,9 +188,11 @@ GetBioFormatsOMEXMLMetaInformation[file_] := "OMEXMLMetaInformation" -> ReadOMEX
 
 ImportExport`RegisterImport["BioFormats",
 	{
-		"ImageList" :> GetBioFormatsImageList,
+		"ImageList" :> (GetBioFormatsImageList[#, All])&,
+		{"ImageList", s:(_Integer|_Symbol)} :> (GetBioFormatsImageList[#, s])&,
 		"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation,
 		"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation,
+		"SeriesCount" :> GetBioFormatsSeriesCount,
 		"Elements" :> GetBioFormatsElements,
 		GetBioFormatsElements
 	},
