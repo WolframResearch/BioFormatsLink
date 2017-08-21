@@ -172,8 +172,8 @@ GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
 GetBioFormatsSeriesCount[file_] := "SeriesCount" -> ReadSeriesCount[file];
 
-GetBioFormatsImageList[file_, series_] := Block[{seriesCount, res},
-	If[series === All,
+GetBioFormatsImageList[series_][file_] := Block[{seriesCount, res},
+	If[MatchQ[series, All | Automatic],
 		seriesCount = ReadSeriesCount[file];
 		res = Map[ReadImage[file, #]&, Range[seriesCount]];
 		,
@@ -188,8 +188,8 @@ GetBioFormatsOMEXMLMetaInformation[file_] := "OMEXMLMetaInformation" -> ReadOMEX
 
 ImportExport`RegisterImport["BioFormats",
 	{
-		"ImageList" :> (GetBioFormatsImageList[#, All])&,
-		{"ImageList", s:(_Integer|_Symbol)} :> (GetBioFormatsImageList[#, s])&,
+		"ImageList" :> GetBioFormatsImageList[All],
+		{"ImageList", s:(_Integer|_Symbol)} :> GetBioFormatsImageList[s],
 		"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation,
 		"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation,
 		"SeriesCount" :> GetBioFormatsSeriesCount,
