@@ -33,10 +33,11 @@ ReadSeriesCount[file_?StringQ] :=
 			Message[ReadSeriesCount::nffil, file];
 			Return[$Failed];
 		];
-		Quiet[
-			ir@setId[file];
-			res = ir@getSeriesCount[];
+		If[Quiet[Check[ir@setId[file], $Failed]] === $Failed,
+			Message[ReadSeriesCount::fmterr];
+			Return[$Failed];
 		];
+		Quiet[res = ir@getSeriesCount[]];
 		If[!Internal`PositiveMachineIntegerQ[res],
 			Message[ReadSeriesCount::fmterr];
 			Return[$Failed];
@@ -53,10 +54,11 @@ ReadImage[file_?StringQ, series_:1] :=
 			Message[ReadImage::nffil, file];
 			Return[$Failed];
 		];
-		Quiet[
-			ir@setId[file];
-			seriesCount = ir@getSeriesCount[];
+		If[Quiet[Check[ir@setId[file], $Failed]] === $Failed,
+			Message[ReadImage::fmterr];
+			Return[$Failed];
 		];
+		Quiet[seriesCount = ir@getSeriesCount[]];
 		If[!(Internal`PositiveMachineIntegerQ[series] && series <= seriesCount),
 			Message[ReadImage::serieserr, seriesCount, series];
 			Return[$Failed];
@@ -110,10 +112,11 @@ ReadOriginalMetadata[file_?StringQ] :=
 			Message[ReadOriginalMetadata::nffil, file];
 			Return[$Failed];
 		];
-		Quiet[
-			ir@setId[file];
-			metastring = ir@getCoreMetadataList[]@toString[];
+		If[Quiet[Check[ir@setId[file], $Failed]] === $Failed,
+			Message[ReadOriginalMetadata::fmterr];
+			Return[$Failed];
 		];
+		Quiet[metastring = ir@getCoreMetadataList[]@toString[]];
 		If[!(StringQ[metastring] && StringLength[metastring] > 0),
 			Message[ReadOriginalMetadata::fmterr];
 			Return[$Failed];
@@ -156,9 +159,13 @@ ReadOMEXMLMetadata[file_?StringQ] :=
 			meta = service@createOMEXMLMetadata[];
 			ir@setMetadataStore[meta];
 			ir@setOriginalMetadataPopulated[False];
-			ir@setId[file];
-			metastring = service@getOMEXML[meta];
+
 		];
+		If[Quiet[Check[ir@setId[file], $Failed]] === $Failed,
+			Message[ReadOMEXMLMetadata::fmterr];
+			Return[$Failed];
+		];
+		Quiet[metastring = service@getOMEXML[meta]];
 		If[!(StringQ[metastring] && StringLength[metastring] > 0),
 			Message[ReadOMEXMLMetadata::fmterr];
 			Return[$Failed];
@@ -170,22 +177,55 @@ $BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalM
 
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
-GetBioFormatsSeriesCount[file_] := "SeriesCount" -> ReadSeriesCount[file];
+GetBioFormatsSeriesCount[file_] := Block[{res},
+	res = Quiet[ReadSeriesCount[file]];
+	If[!Internal`PositiveMachineIntegerQ[res],
+		Message[Import::fmterr, "BioFormats"];
+		Return[$Failed];
+	];
+	Return["SeriesCount" -> res];
+];
 
 GetBioFormatsImageList[series_][file_] := Block[{seriesCount, res},
 	If[MatchQ[series, All | Automatic],
-		seriesCount = ReadSeriesCount[file];
-		res = Map[ReadImage[file, #]&, Range[seriesCount]];
+		seriesCount = Quiet[ReadSeriesCount[file]];
+		If[!Internal`PositiveMachineIntegerQ[seriesCount],
+			Message[Import::fmterr, "BioFormats"];
+			Return[$Failed];
+		];
+		res = Quiet[Map[ReadImage[file, #]&, Range[seriesCount]]];
+		If[res === $Failed,
+			Message[Import::fmterr, "BioFormats"];
+			Return[$Failed];
+		];
 		Return["ImageList" -> res];
 		,
-		res = ReadImage[file, series];
+		res = Quiet[ReadImage[file, series]];
+		If[res === $Failed,
+			Message[Import::fmterr, "BioFormats"];
+			Return[$Failed];
+		];
 		Return["ImageList" -> series -> res];
 	];
 ];
 
-GetBioFormatsOriginalMetaInformation[file_] := "OriginalMetaInformation" -> ReadOriginalMetadata[file];
+GetBioFormatsOriginalMetaInformation[file_] := Block[{res},
+	res = Quiet[ReadOriginalMetadata[file]];
+	If[res === $Failed,
+		Message[Import::fmterr, "BioFormats"];
+		Return[$Failed];
+	];
+	Return["OriginalMetaInformation" -> res];
+];
 
-GetBioFormatsOMEXMLMetaInformation[file_] := "OMEXMLMetaInformation" -> ReadOMEXMLMetadata[file];
+GetBioFormatsOMEXMLMetaInformation[file_] := Block[{res},
+	res = Quiet[ReadOMEXMLMetadata[file]];
+	If[res === $Failed,
+		Message[Import::fmterr, "BioFormats"];
+		Return[$Failed];
+	];
+	Return["OMEXMLMetaInformation" -> res];
+];
 
 ImportExport`RegisterImport["BioFormats",
 	{
