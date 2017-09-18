@@ -2,7 +2,15 @@
 
 ![BioFormatsLinkLogo](logo.png)
 
-BioFormatsLink is a package for interacting with [Bio-Formats](http://www.openmicroscopy.org/bio-formats/) library in the [Wolfram Language](https://www.wolfram.com/language/). BioFormatsLink supports 11.2 and later versions of Wolfram Language deployments for the desktop, including [Wolfram Desktop](https://www.wolfram.com/desktop/) and [Mathematica](https://www.wolfram.com/mathematica/).
+BioFormatsLink is a package for interacting with [Bio-Formats](http://www.openmicroscopy.org/bio-formats/) library in the [Wolfram Language](https://www.wolfram.com/language/). BioFormatsLink supports 10.2 and later versions of Wolfram Language deployments for the desktop, including [Wolfram Desktop](https://www.wolfram.com/desktop/) and [Mathematica](https://www.wolfram.com/mathematica/).
+
+### Building BioFormatsLink
+    
+To build a `.paclet` file:
+
+* Open Scripts/assemblePaclet.wl in the Wolfram system.
+* You may want to modify the value of $versionNumber variable.
+* Run the entire package.
 
 ### Installing the BioFormatsLink release
 
@@ -17,3 +25,20 @@ This will permanently install the BioFormatsLink paclet. The Wolfram Language wi
 And all versions can be uninstalled using the command:
 
     PacletUninstall["BioFormatsLink"]
+    
+ 
+### Using BioFormatsLink
+
+To access the documentation, open the notebook interface help viewer, and search for BioFormatsLink/tutorial/ImportingDataFromBioFormats. This will open a tutorial on how to import data using BioFormatsLink.
+
+To start, load the BioFormatLink package, and try opening an image file.
+
+    Needs["BioFormatsLink`"]
+    Import["ExampleData/spikey.tiff", "BioFormats"] 
+    
+### More...
+
+See the following files for more information:
+
+* [LICENSE.txt](LICENSE.txt) - BioFormatsLink license
+* [CONTRIBUTING.md](CONTRIBUTING.md) - Guidelines for contributing to BioFormatsLink
