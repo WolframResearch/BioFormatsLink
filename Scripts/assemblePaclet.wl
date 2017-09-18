@@ -31,6 +31,18 @@ $assembled = ToFileName[{$buildDirectory, date <> "-" <> time, "BioFormatsLink"}
 CreateDirectory[$assembled, CreateIntermediateDirectories -> True];
 
 $sourceFolderSet = {"Kernel"};
+$builtDocs = FileNameJoin[{
+	ParentDirectory[$scriptsDirectory],
+	"Built-Documentation",
+	"GitLink",
+	"Documentation"
+}
+];
+
+If[Environment["WORKSPACE"]=!=$Failed,
+	CopyDirectory[$builtDocs, FileNameJoin[{$assembled, "Documentation"}]],
+	AppendTo[$sourceFolderSet, "Documentation"]
+];
 
 CopyDirectory[ToFileName[{$source, #}], ToFileName[{$assembled, #}]]& /@ $sourceFolderSet;
 CopyDirectory[$java,  ToFileName[{$assembled, "Java"}]];
