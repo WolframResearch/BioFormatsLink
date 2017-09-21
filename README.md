@@ -8,6 +8,7 @@ BioFormatsLink is a package for interacting with [Bio-Formats](http://www.openmi
     
 To build a `.paclet` file:
 
+* Build documentation using Ant's script in Scripts/docbuild.xml.
 * Open Scripts/assemblePaclet.wl in the Wolfram system.
 * You may want to modify the value of $versionNumber variable.
 * Run the entire package.
