@@ -31,10 +31,10 @@ $assembled = ToFileName[{$buildDirectory, date <> "-" <> time, "BioFormatsLink"}
 CreateDirectory[$assembled, CreateIntermediateDirectories -> True];
 
 $sourceFolderSet = {"Kernel"};
+
 $builtDocs = FileNameJoin[{
-	ParentDirectory[$scriptsDirectory],
-	"Built-Documentation",
-	"GitLink",
+	$buildDirectory,
+	"BioFormatsLink",
 	"Documentation"
 }
 ];
