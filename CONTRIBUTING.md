@@ -36,5 +36,5 @@ and ability to address it**.
 
 When reporting issues, always include:
 
-* Your version of *Mathematica*<sup>&reg;</sup> or the Wolfram Language<sup>&trade;</sup>.
+* Your version of Mathematica<sup>&reg;</sup> or the Wolfram Language<sup>&trade;</sup>.
 * Your operating system.
