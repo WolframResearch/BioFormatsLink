@@ -34,7 +34,13 @@
 
 	<target name="build" depends="clean,init">
 		<antcall target="createDirs" />
+		<antcall target="buildDocs" />
 		<antcall target="createZips" />
 	</target>
+	
+	<target name="buildDocs">
+		<ant antfile="scripts/docbuild.xml" target="docbuild">
+		</ant>
+	</target> 
 
 </project>

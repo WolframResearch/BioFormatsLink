@@ -39,11 +39,7 @@ $builtDocs = FileNameJoin[{
 }
 ];
 
-If[Environment["WORKSPACE"]=!=$Failed,
-	CopyDirectory[$builtDocs, FileNameJoin[{$assembled, "Documentation"}]],
-	AppendTo[$sourceFolderSet, "Documentation"]
-];
-
+CopyDirectory[$builtDocs, FileNameJoin[{$assembled, "Documentation"}]]
 CopyDirectory[ToFileName[{$source, #}], ToFileName[{$assembled, #}]]& /@ $sourceFolderSet;
 CopyDirectory[$java,  ToFileName[{$assembled, "Java"}]];
 

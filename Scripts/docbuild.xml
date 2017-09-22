@@ -33,7 +33,6 @@
 	<property name="pacletContainer" value="BioFormatsLink"/>
 	<property name="docInputDir" value="BioFormatsLink/Documentation"/>
 	<property name="docOutputDir" value="Documentation"/>
-	<property name="dist" value="${basedir}/build" />
 	
 	<target name="clean">
 		<delete  dir="${dist}" />
@@ -61,8 +60,8 @@ or set Mathematica.DocumentationBuild.createHTML.setting to Mathematica.Document
 
 		<property name="inputDir" value="${basedir}/${docInputDir}" />
 		<property name="outputDirNB" value="${dist}/${pacletContainer}/${docOutputDir}" />
-		<property name="outputDirWeb" value="${dist}/${pacletContainer}-HTML/html" />
-		<property name="logDir" value="${dist}/log" />
+		<property name="outputDirWeb" value="${dist}/Web/${pacletContainer}" />
+		<property name="logDir" value="${basedir}/${docOutputDir}/log" />
 		<property name="jlinkpath" value="${mathematicaInstallDir}/SystemFiles/Links/JLink"/>
 
 		<echo message="DocumentationTools: ${appPath}"/>
