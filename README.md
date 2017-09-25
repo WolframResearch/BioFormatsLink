@@ -18,7 +18,7 @@ To build a `.paclet` file:
 
 The BioFormatsLink release comes in the form of a `.paclet` file, which contains the entire package and its documentation. Download the latest release from the [Github repo's releases page](https://github.com/WolframResearch/BioFormatsLink/releases). To install, run the following command in the Wolfram Language:
 
-    PacletInstall["/full/path/to/BioFormatsLink.paclet"]
+    PacletInstall["/full/path/to/BioFormatsLink-version.paclet"]
 
 This will permanently install the BioFormatsLink paclet. The Wolfram Language will always use the latest installed version of BioFormatsLink. Installed versions can be enumerated using the command:
 
