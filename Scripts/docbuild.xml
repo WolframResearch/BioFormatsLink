@@ -30,6 +30,7 @@
 <!--
 	app.name is the name of the application.
 -->
+	<property name="dist" value="${basedir}/build" />
 	<property name="pacletContainer" value="BioFormatsLink"/>
 	<property name="docInputDir" value="BioFormatsLink/Documentation"/>
 	<property name="docOutputDir" value="Documentation"/>
