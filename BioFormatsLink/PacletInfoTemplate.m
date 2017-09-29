@@ -9,7 +9,6 @@ Paclet[
     Extensions -> 
         {
             {"Kernel", Root -> ".", Context -> "BioFormatsLink`"},
-
-	        {"Documentation", Language -> "English"}
+	        {"Documentation", Resources -> {"Guides/BioFormatsLink"}, Language -> "English"}
         }
 ]
