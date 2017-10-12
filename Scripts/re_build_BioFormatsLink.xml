@@ -24,7 +24,7 @@
 			<fileset dir='${basedir}/${component}' />
 		</copy>
 
-		<copy todir='${files_directory}/${component}/${component}' 
+		<copy todir='${files_directory}/${component}' 
 			file='${basedir}/${component}/PacletInfo.m' />
 
 	</target>
@@ -44,12 +44,21 @@
 		<property name='keep.files_directory' value='true' />
 
 	</target>
+	
+	<target name='Paclet.BioFormatsLink.prebuild' extensionOf='Paclet.prebuild'>
+
+		<local name='v' />
+		<property name='v' value='${version_major}.${version_minor}.${env.BUILD_NUMBER}' />
+		<echo>paclet version == "${v}"</echo>
+
+		<replaceregexp file='${files_directory}/${component}/PacletInfo.m' byline='true'>
+			<regexp pattern='^\s+Version\s+.*$' />
+			<substitution expression='Version -&gt; &quot;${v}&quot;,' />
+		</replaceregexp>
+
+	</target>
 
 	<target name='Paclet.BioFormatsLink.execute' extensionOf='Paclet.execute'>
-
-		<copy todir='${files_directory}/${component}'>
-			<fileset dir='${basedir}/${component}'/>
-		</copy>
 
 		<mathematica exe='${mathExe}' fresh='true' quit='true'><![CDATA[
 
