@@ -21,7 +21,7 @@
 		</copy>
 
 		<copy todir='${files_directory}/${component}/Kernel'>
-			<fileset dir='${basedir}/${component}' />
+			<fileset dir='${basedir}/${component}/Kernel' />
 		</copy>
 
 		<copy todir='${files_directory}/${component}' 
