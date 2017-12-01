@@ -48,7 +48,7 @@
 	<target name='Paclet.BioFormatsLink.prebuild' extensionOf='Paclet.prebuild'>
 
 		<local name='v' />
-		<property name='v' value='${version_major}.${version_minor}.${env.BUILD_NUMBER}' />
+		<property name='v' value='${version_major}.${version_minor}.${version_release}' />
 		<echo>paclet version == "${v}"</echo>
 
 		<replaceregexp file='${files_directory}/${component}/PacletInfo.m' byline='true'>
