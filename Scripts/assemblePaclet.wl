@@ -17,6 +17,7 @@ $scriptsDirectory = Which[
 		NotebookDirectory[]
 ];
 
+$buildDirectory = ToFileName[{ParentDirectory[$scriptsDirectory], "build"}];
 
 $source = ToFileName[{ParentDirectory[$scriptsDirectory], "BioFormatsLink"}];
 $pacletinfo = FileNameJoin[{$source, "PacletInfo.m"}]
