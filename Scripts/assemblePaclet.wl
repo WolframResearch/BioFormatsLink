@@ -17,14 +17,9 @@ $scriptsDirectory = Which[
 		NotebookDirectory[]
 ];
 
-$buildDirectory = ToFileName[{ParentDirectory[$scriptsDirectory], "build"}];
 
-$versionNumber = If[Environment["SET_VERSION_NUMBER"] =!= $Failed,
-	Environment["SET_VERSION_NUMBER"],
-	"0.0."<>date<>"."<>time
-];
-	
 $source = ToFileName[{ParentDirectory[$scriptsDirectory], "BioFormatsLink"}];
+$pacletinfo = FileNameJoin[{$source, "PacletInfo.m"}]
 $java = ToFileName[{ParentDirectory[$scriptsDirectory], "Java"}];
 $assembled = ToFileName[{$buildDirectory, date <> "-" <> time, "BioFormatsLink"}];
 
@@ -42,12 +37,7 @@ $builtDocs = FileNameJoin[{
 CopyDirectory[$builtDocs, FileNameJoin[{$assembled, "Documentation"}]]
 CopyDirectory[ToFileName[{$source, #}], ToFileName[{$assembled, #}]]& /@ $sourceFolderSet;
 CopyDirectory[$java,  ToFileName[{$assembled, "Java"}]];
-
-FileTemplateApply[
-	FileTemplate[ToFileName[{$source}, "PacletInfoTemplate.m"]],
-	<| "version" -> $versionNumber |>,
-	ToFileName[{$assembled}, "PacletInfo.m"]
-];
+CopyFile[$pacletinfo, FileNameJoin[{$assembled, "BioFormatsLink", "PacletInfo.m"}]]
 
 (* get rid of any .DS* files or other hidden files *)
 DeleteFile /@ FileNames[".*", $assembled, Infinity];
@@ -63,16 +53,12 @@ PackPaclet[$assembled]
 (*
 Re version numbering:
 
-The code above which builds the .paclet file starts from a PacletInfoTemplate.m
-file, and creates a new PacletInfo.m file, using the current date and time as
-part of a newly synthesized version number.
+The code above which builds the .paclet file starts from a PacletInfo.m file,
+which currently has the version number set to '2100.0'.  This should be changed
+by the developers to whatever version number is appropriate.
 
-One consequence of this is that the static PacletInfo.m file will not be used,
-except by developers who install the original source of BioFormatsLink, which should be
-limited to only people who are developing BioFormatsLink.
-
-For this reason, the version number in the static PacletInfo.m file should
-always be greater than the version number synthesized here. That way, BioFormatsLink
-developers can install the original source, and have it preferred over versions
-of this paclet installed from the internal paclet server.
+Due to the nature of the build system, the RE script will replace the version 
+number with one including the build number.  This prevents issues with similar
+version-ed files confusing the build system.  This change occurs in
+re_build_BioFormatsLink.xml, in the 'Paclet.BioFormatsLink.prebuild' target.
 *)
