@@ -20,7 +20,7 @@ $scriptsDirectory = Which[
 $buildDirectory = ToFileName[{ParentDirectory[$scriptsDirectory], "build"}];
 
 $source = ToFileName[{ParentDirectory[$scriptsDirectory], "BioFormatsLink"}];
-$pacletinfo = FileNameJoin[{$source, "PacletInfo.m"}]
+$pacletinfo = FileNameJoin[{$source, "PacletInfo.m"}];
 $java = ToFileName[{ParentDirectory[$scriptsDirectory], "Java"}];
 $assembled = ToFileName[{$buildDirectory, date <> "-" <> time, "BioFormatsLink"}];
 
@@ -34,11 +34,12 @@ $builtDocs = FileNameJoin[{
 	"Documentation"
 }
 ];
-
+Print[$assembled]
+Print[$pacletinfo]
 CopyDirectory[$builtDocs, FileNameJoin[{$assembled, "Documentation"}]]
 CopyDirectory[ToFileName[{$source, #}], ToFileName[{$assembled, #}]]& /@ $sourceFolderSet;
 CopyDirectory[$java,  ToFileName[{$assembled, "Java"}]];
-CopyFile[$pacletinfo, FileNameJoin[{$assembled, "BioFormatsLink", "PacletInfo.m"}]]
+CopyFile[$pacletinfo, FileNameJoin[{$assembled, "PacletInfo.m"}]]
 
 (* get rid of any .DS* files or other hidden files *)
 DeleteFile /@ FileNames[".*", $assembled, Infinity];
