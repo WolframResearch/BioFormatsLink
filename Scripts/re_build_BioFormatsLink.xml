@@ -21,7 +21,7 @@
 		</copy>
 
 		<copy todir='${files_directory}/${component}/Kernel'>
-			<fileset dir='${basedir}/${component}' />
+			<fileset dir='${basedir}/${component}/Kernel' />
 		</copy>
 
 		<copy todir='${files_directory}/${component}' 
@@ -44,7 +44,7 @@
 		<property name='keep.files_directory' value='true' />
 
 	</target>
-	
+
 	<target name='Paclet.BioFormatsLink.prebuild' extensionOf='Paclet.prebuild'>
 
 		<local name='v' />
