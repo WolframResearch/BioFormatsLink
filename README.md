@@ -10,7 +10,6 @@ To build a `.paclet` file:
 
 * Build documentation using Ant's script in Scripts/docbuild.xml.
 * Open Scripts/assemblePaclet.wl in the Wolfram system.
-* You may want to modify the value of $versionNumber variable.
 * Run the entire package.
 * The `.paclet` file will be created in `/full/path/to/BioFormatsLink/build/date-time` directory.
 
