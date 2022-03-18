@@ -22,7 +22,7 @@
                 <include name="Kernel/**"/>
             </fileset>
 		</copy>
-		<copy todir="${dist}/${pacletName}" file="${rootdir}/${pacletName}/PacletInfo.m" />
+		<copy todir="${dist}/${pacletName}" file="${rootdir}/${pacletName}/PacletInfo.wl" />
 	</target>
 
 	<target name="createZips">

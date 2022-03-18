@@ -25,7 +25,7 @@
 		</copy>
 
 		<copy todir='${files_directory}/${component}'
-			file='${basedir}/${component}/PacletInfo.m' />
+			file='${basedir}/${component}/PacletInfo.wl' />
 
 	</target>
 

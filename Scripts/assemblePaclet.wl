@@ -20,7 +20,7 @@ $scriptsDirectory = Which[
 $buildDirectory = ToFileName[{ParentDirectory[$scriptsDirectory], "build"}];
 
 $source = ToFileName[{ParentDirectory[$scriptsDirectory], "BioFormatsLink"}];
-$pacletinfo = FileNameJoin[{$source, "PacletInfo.m"}];
+$pacletinfo = FileNameJoin[{$source, "PacletInfo.wl"}];
 $java = ToFileName[{ParentDirectory[$scriptsDirectory], "Java"}];
 $assembled = ToFileName[{$buildDirectory, date <> "-" <> time, "BioFormatsLink"}];
 
@@ -39,28 +39,10 @@ Print[$pacletinfo]
 CopyDirectory[$builtDocs, FileNameJoin[{$assembled, "Documentation"}]]
 CopyDirectory[ToFileName[{$source, #}], ToFileName[{$assembled, #}]]& /@ $sourceFolderSet;
 CopyDirectory[$java,  ToFileName[{$assembled, "Java"}]];
-CopyFile[$pacletinfo, FileNameJoin[{$assembled, "PacletInfo.m"}]]
+CopyFile[$pacletinfo, FileNameJoin[{$assembled, "PacletInfo.wl"}]]
 
 (* get rid of any .DS* files or other hidden files *)
 DeleteFile /@ FileNames[".*", $assembled, Infinity];
 
 
-PackPaclet[$assembled]
-
-
-(* ::Section:: *)
-(*notes*)
-
-
-(*
-Re version numbering:
-
-The code above which builds the .paclet file starts from a PacletInfo.m file,
-which currently has the version number set to '2100.0'.  This should be changed
-by the developers to whatever version number is appropriate.
-
-Due to the nature of the build system, the RE script will replace the version 
-number with one including the build number.  This prevents issues with similar
-version-ed files confusing the build system.  This change occurs in
-re_build_BioFormatsLink.xml, in the 'Paclet.BioFormatsLink.prebuild' target.
-*)
+CreatePacletArchive[$assembled]
