@@ -1,8 +1,7 @@
 <project name="BioFormatsLink" default="build" basedir="..">
 
 	<property name="rootdir" value="${basedir}" />
-	<property name="dist" value="${basedir}/build" />
-	<property name="properties" value="scripts/build-local.properties" />
+	<property name="dist" value="${basedir}/Build" />
 	<property name="pacletName" value="BioFormatsLink" />
 
 	<target name="clean">
@@ -39,7 +38,7 @@
 	</target>
 	
 	<target name="buildDocs">
-		<ant antfile="scripts/docbuild.xml" target="docbuild">
+		<ant antfile="Scripts/docbuild.xml" target="docbuild">
 		</ant>
 	</target> 
 

@@ -10,14 +10,14 @@ time = DateString[{"Hour24", "Minute", "Second"}];
 
 $scriptsDirectory = Which[
 	Environment["WORKSPACE"] =!= $Failed,
-		FileNameJoin[{Environment["WORKSPACE"],"scripts"}],
+		FileNameJoin[{Environment["WORKSPACE"],"Scripts"}],
 	$InputFileName =!= "",
 		DirectoryName[$InputFileName],
 	True,
 		NotebookDirectory[]
 ];
 
-$buildDirectory = ToFileName[{ParentDirectory[$scriptsDirectory], "build"}];
+$buildDirectory = ToFileName[{ParentDirectory[$scriptsDirectory], "Build"}];
 
 $source = ToFileName[{ParentDirectory[$scriptsDirectory], "BioFormatsLink"}];
 $pacletinfo = FileNameJoin[{$source, "PacletInfo.wl"}];
