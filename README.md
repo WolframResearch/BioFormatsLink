@@ -2,7 +2,7 @@
 
 ![BioFormatsLinkLogo](logo.png)
 
-BioFormatsLink is a package for interacting with [Bio-Formats](http://www.openmicroscopy.org/bio-formats/) library in the [Wolfram Language](https://www.wolfram.com/language/). BioFormatsLink supports 10.2 and later versions of Wolfram Language deployments for the desktop, including [Wolfram Desktop](https://www.wolfram.com/desktop/) and [Mathematica](https://www.wolfram.com/mathematica/).
+BioFormatsLink is a package for interacting with [Bio-Formats](http://www.openmicroscopy.org/bio-formats/) library in the [Wolfram Language](https://www.wolfram.com/language/). BioFormatsLink supports 12.1 and later versions of Wolfram Language deployments for the desktop, including [Wolfram Desktop](https://www.wolfram.com/desktop/) and [Mathematica](https://www.wolfram.com/mathematica/).
 
 ### Building BioFormatsLink
     
