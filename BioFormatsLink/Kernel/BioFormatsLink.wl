@@ -227,19 +227,21 @@ GetBioFormatsOMEXMLMetaInformation[file_] := Block[{res},
 	Return["OMEXMLMetaInformation" -> res];
 ];
 
-ImportExport`RegisterImport["BioFormats",
-	{
-		"ImageList" | {"ImageList", Automatic|All|"All"} :> GetBioFormatsImageList[All],
-		{"ImageList", s:(_Integer)} :> GetBioFormatsImageList[s],
-		"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation,
-		"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation,
-		"SeriesCount" :> GetBioFormatsSeriesCount,
-		"Elements" :> GetBioFormatsElements,
-		GetBioFormatsElements
-	},
-	"BinaryFormat" -> True,
-	"AvailableElements" -> $BioFormatsAvailableElements,
-	"DefaultElement" -> "ImageList"
+If[$VersionNumber < 13.1,
+	ImportExport`RegisterImport["BioFormats",
+		{
+			"ImageList" | {"ImageList", Automatic|All|"All"} :> GetBioFormatsImageList[All],
+			{"ImageList", s:(_Integer)} :> GetBioFormatsImageList[s],
+			"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation,
+			"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation,
+			"SeriesCount" :> GetBioFormatsSeriesCount,
+			"Elements" :> GetBioFormatsElements,
+			GetBioFormatsElements
+		},
+		"BinaryFormat" -> True,
+		"AvailableElements" -> $BioFormatsAvailableElements,
+		"DefaultElement" -> "ImageList"
+	];
 ];
 
 End[];
