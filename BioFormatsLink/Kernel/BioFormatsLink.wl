@@ -177,71 +177,71 @@ $BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalM
 
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
-GetBioFormatsSeriesCount[file_] := Block[{res},
+GetBioFormatsSeriesCount[format_][file_] := Block[{res},
 	res = Quiet[ReadSeriesCount[file]];
 	If[!Internal`PositiveMachineIntegerQ[res],
-		Message[Import::fmterr, "BioFormats"];
+		Message[Import::fmterr, format];
 		Return[$Failed];
 	];
 	Return["SeriesCount" -> res];
 ];
 
-GetBioFormatsImageList[series_][file_] := Block[{seriesCount, res},
+GetBioFormatsImageList[format_][series_][file_] := Block[{seriesCount, res},
 	If[MatchQ[series, All | Automatic],
 		seriesCount = Quiet[ReadSeriesCount[file]];
 		If[!Internal`PositiveMachineIntegerQ[seriesCount],
-			Message[Import::fmterr, "BioFormats"];
+			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
 		res = Quiet[Map[ReadImage[file, #]&, Range[seriesCount]]];
 		If[res === $Failed,
-			Message[Import::fmterr, "BioFormats"];
+			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
 		Return["ImageList" -> res];
 		,
 		res = Quiet[ReadImage[file, series]];
 		If[res === $Failed,
-			Message[Import::fmterr, "BioFormats"];
+			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
 		Return["ImageList" -> series -> res];
 	];
 ];
 
-GetBioFormatsOriginalMetaInformation[file_] := Block[{res},
+GetBioFormatsOriginalMetaInformation[format_][file_] := Block[{res},
 	res = Quiet[ReadOriginalMetadata[file]];
 	If[res === $Failed,
-		Message[Import::fmterr, "BioFormats"];
+		Message[Import::fmterr, format];
 		Return[$Failed];
 	];
 	Return["OriginalMetaInformation" -> res];
 ];
 
-GetBioFormatsOMEXMLMetaInformation[file_] := Block[{res},
+GetBioFormatsOMEXMLMetaInformation[format_][file_] := Block[{res},
 	res = Quiet[ReadOMEXMLMetadata[file]];
 	If[res === $Failed,
-		Message[Import::fmterr, "BioFormats"];
+		Message[Import::fmterr, format];
 		Return[$Failed];
 	];
 	Return["OMEXMLMetaInformation" -> res];
 ];
 
 If[$VersionNumber < 13.1,
-	ImportExport`RegisterImport["BioFormats",
+	ImportExport`RegisterImport[#,
 		{
-			"ImageList" | {"ImageList", Automatic|All|"All"} :> GetBioFormatsImageList[All],
-			{"ImageList", s:(_Integer)} :> GetBioFormatsImageList[s],
-			"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation,
-			"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation,
-			"SeriesCount" :> GetBioFormatsSeriesCount,
+			"ImageList" | {"ImageList", Automatic|All|"All"} :> GetBioFormatsImageList[#][All],
+			{"ImageList", s:(_Integer)} :> GetBioFormatsImageList[#][s],
+			"OriginalMetaInformation" :> GetBioFormatsOriginalMetaInformation[#],
+			"OMEXMLMetaInformation" :> GetBioFormatsOMEXMLMetaInformation[#],
+			"SeriesCount" :> GetBioFormatsSeriesCount[#],
 			"Elements" :> GetBioFormatsElements,
 			GetBioFormatsElements
 		},
 		"BinaryFormat" -> True,
 		"AvailableElements" -> $BioFormatsAvailableElements,
 		"DefaultElement" -> "ImageList"
-	];
+	]& /@ {"BioFormats", "BioImageFormat"};
 ];
 
 End[];
