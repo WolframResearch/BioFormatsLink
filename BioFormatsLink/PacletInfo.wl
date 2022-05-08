@@ -3,7 +3,7 @@
 PacletObject[<|
     "Name" -> "BioFormatsLink",
 	"Description" -> "Utilities for interacting with Bio-Formats library.",
-    "Version" -> "1.1",
+    "Version" -> "1.2",
     "WolframVersion" -> "12.1+",
     "Extensions" -> 
         {
