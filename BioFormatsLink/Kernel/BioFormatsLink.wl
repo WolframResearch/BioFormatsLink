@@ -158,8 +158,8 @@ ReadOMEXMLMetadata[file_?StringQ] :=
 			service = factory@getInstance[serviceClass];
 			meta = service@createOMEXMLMetadata[];
 			ir@setMetadataStore[meta];
-			ir@setOriginalMetadataPopulated[False];
-
+			ir@setOriginalMetadataPopulated[True];
+			ir@setMetadataFiltered[True];
 		];
 		If[Quiet[Check[ir@setId[file], $Failed]] === $Failed,
 			Message[ReadOMEXMLMetadata::fmterr];
