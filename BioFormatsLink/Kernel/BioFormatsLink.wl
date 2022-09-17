@@ -11,7 +11,11 @@ ReadSeriesCount::fmterr = ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmt
 $BioFormatsLinkPath = ParentDirectory[DirectoryName[$InputFileName]];
 $BioFormatsJar = First@FileNames["bioformats_package.jar", FileNameJoin[{$BioFormatsLinkPath, "Java"}]];
 
-InstallJava[];
+(* Returns 3/4 of available memory in the format accepted by JVM: -XmxNg*)
+GetMaxJVMMemory[] := 
+  "-Xmx" <> ToString[Max[1, Round[3/4 * N[MemoryAvailable[] / 2^30]]]] <> "g";
+
+JLink`ReinstallJava[JLink`JVMArguments -> GetMaxJVMMemory[]];
 JLink`AddToClassPath[$BioFormatsJar];
 JLink`LoadJavaClass["java.awt.image.BufferedImage"];
 JLink`LoadJavaClass["loci.formats.gui.BufferedImageReader"];
