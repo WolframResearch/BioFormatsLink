@@ -11,14 +11,32 @@ ReadSeriesCount::fmterr = ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmt
 $BioFormatsLinkPath = ParentDirectory[DirectoryName[$InputFileName]];
 $BioFormatsJar = First@FileNames["bioformats_package.jar", FileNameJoin[{$BioFormatsLinkPath, "Java"}]];
 
-(* Returns 3/4 of available memory in the format accepted by JVM: -XmxNg*)
-GetMaxJVMMemory[] := 
-  "-Xmx" <> ToString[Max[1, Round[3/4 * N[MemoryAvailable[] / 2^30]]]] <> "g";
+$CloudMaxJVMMemoryGB = 5;
 
-JLink`ReinstallJava[JLink`JVMArguments -> GetMaxJVMMemory[]];
-JLink`AddToClassPath[$BioFormatsJar];
-JLink`LoadJavaClass["java.awt.image.BufferedImage"];
-JLink`LoadJavaClass["loci.formats.gui.BufferedImageReader"];
+(*
+	Returns 3/4 of available memory in the format accepted by JVM: -XmxNg.
+	In the could environment the maximal memory size is controlled by $CloudMaxJVMMemoryGB.
+*)
+
+GetMaxJVMMemory[] :=
+    Block[{maxMem = Max[1, Round[3/4 * N[MemoryAvailable[] / 2^30]]]},
+	    If[$CloudEvaluation,
+		    maxMem = Round[Min[maxMem, $CloudMaxJVMMemoryGB]];
+	    ];
+        "-Xmx" <> ToString[maxMem] <> "g"
+	];
+
+$privateJVM := JLink`GetJVM[JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False, JLink`JVMArguments-> GetMaxJVMMemory[]]];
+
+(* Initialization *)
+If[$InitializedQ =!= True,
+	JLink`AddToClassPath[$privateJVM, $BioFormatsJar];
+	JLink`LoadJavaClass[$privateJVM, "loci.formats.ImageReader"];
+	JLink`LoadJavaClass[$privateJVM, "loci.formats.gui.BufferedImageReader"];
+	JLink`LoadJavaClass[$privateJVM, "loci.common.services.ServiceFactory"];
+	JLink`LoadJavaClass[$privateJVM, "com.wolfram.jlink.JLinkClassLoader"];
+	$InitializedQ = True;
+];
 
 (*Convert pixel types and color space.*)
 BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
@@ -32,7 +50,7 @@ BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
 
 (* Read the number of series.*)
 ReadSeriesCount[file_?StringQ] :=
-	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], res},
+	JLink`JavaBlock@Module[ {ir = JLink`JavaNew[$privateJVM, "loci.formats.ImageReader"], res},
 		If[!Quiet[FileExistsQ[file] === True],
 			ir@close[];
 			Message[ReadSeriesCount::nffil, file];
@@ -55,7 +73,7 @@ ReadSeriesCount[file_?StringQ] :=
 
 (* Read image.*)
 ReadImage[file_?StringQ, series_:1] :=
-	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]],
+	JLink`JavaBlock@Module[ {ir = JLink`JavaNew[$privateJVM, "loci.formats.ImageReader"],
 		reader, image, raster, pixels, channels, bands, timeSeries, slices, index, height, width, type, colorspace = Automatic, seriesCount, res},
 		If[!Quiet[FileExistsQ[file] === True],
 			ir@close[];
@@ -73,13 +91,13 @@ ReadImage[file_?StringQ, series_:1] :=
 			Message[ReadImage::serieserr, seriesCount, series];
 			Return[$Failed];
 		];
-		Quiet[
+		(*Quiet[*)
 			ir@setSeries[series - 1];
 			reader = BufferedImageReader`makeBufferedImageReader[ir];
 			channels = reader@getEffectiveSizeC[];
 			timeSeries = reader@getSizeT[];
 			slices = reader@getSizeZ[];
-		];
+		(*];*)
 		If[!VectorQ[{channels, timeSeries, slices}, Internal`PositiveMachineIntegerQ],
 			ir@close[];
 			Message[ReadImage::fmterr];
@@ -97,7 +115,7 @@ ReadImage[file_?StringQ, series_:1] :=
 							width = image@getWidth[];
 							{type, colorspace} = BioFormatsToMathematicaTypeAndColorSpace[image@getType[]];
 							bands = raster@getNumBands[];
-							pixels = Map[ArrayReshape[raster@getSamples[0, 0, width, height, #, JLink`JavaNew["[I", width * height]],{height, width}]&, Range[0,bands-1]];
+							pixels = Map[ArrayReshape[raster@getSamples[0, 0, width, height, #, JLink`JavaNew[$privateJVM, "[I", width * height]],{height, width}]&, Range[0,bands-1]];
 							Image[pixels, type, ColorSpace->colorspace, Interleaving -> False],
 							{c, 0, channels - 1}
 						],
@@ -119,7 +137,7 @@ ReadImage[file_?StringQ, series_:1] :=
 
 (*Read original metadata*)
 ReadOriginalMetadata[file_?StringQ] :=
-	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], metastring, res},
+	JLink`JavaBlock@Module[ {ir = JLink`JavaNew[$privateJVM, "loci.formats.ImageReader"], metastring, res},
 		If[!Quiet[FileExistsQ[file] === True],
 			ir@close[];
 			Message[ReadOriginalMetadata::nffil, file];
@@ -161,23 +179,21 @@ ReadOriginalMetadata[file_?StringQ] :=
 
 (*Read OME-XML metadata*)
 ReadOMEXMLMetadata[file_?StringQ] :=
-	JavaBlock@Module[ {ir = JLink`JavaNew[JLink`LoadJavaClass["loci.formats.ImageReader"]], factory, service, serviceClass, meta, metastring},
+	JLink`JavaBlock@Module[ {ir = JLink`JavaNew[$privateJVM, "loci.formats.ImageReader"], factory, service, serviceClass, meta, metastring},
 		If[!Quiet[FileExistsQ[file] === True],
 			ir@close[];
 			Message[ReadOMEXMLMetadata::nffil, file];
 			Return[$Failed];
 		];
-		Quiet[
-			factory = JLink`JavaNew[JLink`LoadJavaClass["loci.common.services.ServiceFactory"]];
-			LoadJavaClass["loci.formats.services.OMEXMLService"];
-			LoadJavaClass["com.wolfram.jlink.JLinkClassLoader"];
+		(*Quiet[*)
+			factory = JLink`JavaNew[$privateJVM, "loci.common.services.ServiceFactory"];
 			serviceClass = JLinkClassLoader`classFromName["loci.formats.services.OMEXMLService"];
 			service = factory@getInstance[serviceClass];
 			meta = service@createOMEXMLMetadata[];
 			ir@setMetadataStore[meta];
 			ir@setOriginalMetadataPopulated[True];
 			ir@setMetadataFiltered[True];
-		];
+		(*];*);
 		If[Quiet[Check[ir@setId[file], $Failed]] === $Failed,
 			ir@close[];
 			Message[ReadOMEXMLMetadata::fmterr];
