@@ -15,7 +15,7 @@ $CloudMaxJVMMemoryGB = 5;
 
 (*
 	Returns 3/4 of available memory in the format accepted by JVM: -XmxNg.
-	In the could environment the maximal memory size is controlled by $CloudMaxJVMMemoryGB.
+	In the cloud environment the maximal memory size is controlled by $CloudMaxJVMMemoryGB.
 *)
 
 GetMaxJVMMemory[] :=
