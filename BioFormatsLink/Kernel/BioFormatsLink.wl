@@ -11,22 +11,22 @@ ReadSeriesCount::fmterr = ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmt
 $BioFormatsLinkPath = ParentDirectory[DirectoryName[$InputFileName]];
 $BioFormatsJar = First@FileNames["bioformats_package.jar", FileNameJoin[{$BioFormatsLinkPath, "Java"}]];
 
-$CloudMaxJVMMemoryGB = 5;
-
 (*
 	Returns 3/4 of available memory in the format accepted by JVM: -XmxNg.
-	In the cloud environment the maximal memory size is controlled by $CloudMaxJVMMemoryGB.
 *)
-
 GetMaxJVMMemory[] :=
 	Block[{maxMem = Max[1, Round[3 / 4 * N[MemoryAvailable[] / 2^30]]]},
-		If[$CloudEvaluation,
-			maxMem = Round[Min[maxMem, $CloudMaxJVMMemoryGB]];
-		];
 		"-Xmx" <> ToString[maxMem] <> "g"
 	];
 
-$privateJVM = JLink`GetJVM[JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False, JLink`JVMArguments -> GetMaxJVMMemory[]]];
+$privateJVM =
+	JLink`GetJVM[
+		If[TrueQ[$CloudEvaluation],
+			JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False]
+			,
+			JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False, JLink`JVMArguments -> GetMaxJVMMemory[]]
+		]
+	];
 
 (* Initialization *)
 If[$InitializedQ =!= True,
