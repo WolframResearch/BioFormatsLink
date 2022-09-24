@@ -19,24 +19,29 @@ GetMaxJVMMemory[] :=
 		"-Xmx" <> ToString[maxMem] <> "g"
 	];
 
-$privateJVM =
-	JLink`GetJVM[
+initJava[] :=
+	If[Head[$jvm] =!= JLink`JVM,
 		If[TrueQ[$CloudEvaluation],
-			JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False]
-			,
-			JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False, JLink`JVMArguments -> GetMaxJVMMemory[]]
-		]
+			(* In cloud, use the default user JVM *)
+			$jvm = JLink`GetJVM[JLink`InstallJava[]];
+			$isPrivateJVM = False
+			,(* else *)
+			(* If not in cloud, use a private JVM with extra-large memory allocation *)
+			$jvm = JLink`GetJVM[JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False, JLink`JVMArguments -> GetMaxJVMMemory[]]];
+			$isPrivateJVM = True
+		];
+		JLink`AddToClassPath[$jvm, $BioFormatsJar];
+		JLink`LoadJavaClass[$jvm, "loci.formats.ImageReader"];
+		JLink`LoadJavaClass[$jvm, "loci.formats.gui.BufferedImageReader"];
+		JLink`LoadJavaClass[$jvm, "loci.common.services.ServiceFactory"];
+		JLink`LoadJavaClass[$jvm, "com.wolfram.jlink.JLinkClassLoader"];
 	];
 
-(* Initialization *)
-If[$InitializedQ =!= True,
-	JLink`AddToClassPath[$privateJVM, $BioFormatsJar];
-	JLink`LoadJavaClass[$privateJVM, "loci.formats.ImageReader"];
-	JLink`LoadJavaClass[$privateJVM, "loci.formats.gui.BufferedImageReader"];
-	JLink`LoadJavaClass[$privateJVM, "loci.common.services.ServiceFactory"];
-	JLink`LoadJavaClass[$privateJVM, "com.wolfram.jlink.JLinkClassLoader"];
-	$InitializedQ = True;
-];
+deinitJava[] :=
+    If[$isPrivateJVM,
+	    Quiet[JLink`UninstallJava[$jvm]];
+	    $jvm = Null;
+    ];
 
 (*Convert pixel types and color space.*)
 BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
@@ -50,7 +55,7 @@ BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
 
 (* Read the number of series.*)
 ReadSeriesCount[file_?StringQ] :=
-	JLink`UseJVM[$privateJVM,
+	JLink`UseJVM[$jvm,
 		JLink`JavaBlock@Module[ {ir = JLink`JavaNew["loci.formats.ImageReader"], res},
 			If[!Quiet[FileExistsQ[file] === True],
 				ir@close[];
@@ -75,7 +80,7 @@ ReadSeriesCount[file_?StringQ] :=
 
 (* Read image.*)
 ReadImage[file_?StringQ, series_ : 1] :=
-	JLink`UseJVM[$privateJVM,
+	JLink`UseJVM[$jvm,
 		JLink`JavaBlock@Module[ {ir = JLink`JavaNew["loci.formats.ImageReader"],
 			reader, image, raster, pixels, channels, bands, timeSeries, slices, index, height, width, type, colorspace = Automatic, seriesCount, res},
 			If[!Quiet[FileExistsQ[file] === True],
@@ -141,7 +146,7 @@ ReadImage[file_?StringQ, series_ : 1] :=
 
 (*Read original metadata*)
 ReadOriginalMetadata[file_?StringQ] :=
-	JLink`UseJVM[$privateJVM,
+	JLink`UseJVM[$jvm,
 		JLink`JavaBlock@Module[ {ir = JLink`JavaNew["loci.formats.ImageReader"], metastring, res},
 			If[!Quiet[FileExistsQ[file] === True],
 				ir@close[];
@@ -185,7 +190,7 @@ ReadOriginalMetadata[file_?StringQ] :=
 
 (*Read OME-XML metadata*)
 ReadOMEXMLMetadata[file_?StringQ] :=
-	JLink`UseJVM[$privateJVM,
+	JLink`UseJVM[$jvm,
 		JLink`JavaBlock@Module[ {ir = JLink`JavaNew["loci.formats.ImageReader"], factory, service, serviceClass, meta, metastring},
 			If[!Quiet[FileExistsQ[file] === True],
 				ir@close[];
@@ -221,7 +226,9 @@ $BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalM
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
 GetBioFormatsSeriesCount[format_][file_] := Block[{res},
+	initJava[];
 	res = Quiet[ReadSeriesCount[file]];
+	deinitJava[];
 	If[!Internal`PositiveMachineIntegerQ[res],
 		Message[Import::fmterr, format];
 		Return[$Failed];
@@ -231,19 +238,24 @@ GetBioFormatsSeriesCount[format_][file_] := Block[{res},
 
 GetBioFormatsImageList[format_][series_][file_] := Block[{seriesCount, res},
 	If[MatchQ[series, All | Automatic],
+		initJava[];
 		seriesCount = Quiet[ReadSeriesCount[file]];
 		If[!Internal`PositiveMachineIntegerQ[seriesCount],
+			deinitJava[];
 			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
 		res = Quiet[Map[ReadImage[file, #]&, Range[seriesCount]]];
+		deinitJava[];
 		If[res === $Failed,
 			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
 		Return["ImageList" -> res];
 		,
+		initJava[];
 		res = Quiet[ReadImage[file, series]];
+		deinitJava[];
 		If[res === $Failed,
 			Message[Import::fmterr, format];
 			Return[$Failed];
@@ -253,7 +265,9 @@ GetBioFormatsImageList[format_][series_][file_] := Block[{seriesCount, res},
 ];
 
 GetBioFormatsOriginalMetaInformation[format_][file_] := Block[{res},
+	initJava[];
 	res = Quiet[ReadOriginalMetadata[file]];
+	deinitJava[];
 	If[res === $Failed,
 		Message[Import::fmterr, format];
 		Return[$Failed];
@@ -262,7 +276,9 @@ GetBioFormatsOriginalMetaInformation[format_][file_] := Block[{res},
 ];
 
 GetBioFormatsOMEXMLMetaInformation[format_][file_] := Block[{res},
+	initJava[];
 	res = Quiet[ReadOMEXMLMetadata[file]];
+	deinitJava[];
 	If[res === $Failed,
 		Message[Import::fmterr, format];
 		Return[$Failed];
