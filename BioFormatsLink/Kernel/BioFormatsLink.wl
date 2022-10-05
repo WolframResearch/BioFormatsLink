@@ -4,6 +4,8 @@ BeginPackage["BioFormatsLink`", {"JLink`"}];
 
 Begin["`Private`"];
 
+Try = System`ConvertersDump`Utilities`Try;
+
 ReadOMEXMLMetadata::nffil = ReadOriginalMetadata::nffil = ReadImage::nffil = "File `1` not found.";
 ReadImage::serieserr = "Expecting a positive integer value smaller or equal to `1` instead of `2`.";
 ReadSeriesCount::fmterr = ReadOMEXMLMetadata::fmterr = ReadOriginalMetadata::fmterr = ReadImage::fmterr = "Cannot import data as BioFormats format.";
@@ -25,7 +27,7 @@ initJava[] :=
 			(* In cloud, use the default user JVM *)
 			$jvm = JLink`GetJVM[JLink`InstallJava[]];
 			$isPrivateJVM = False
-			,(* else *)
+			, (* else *)
 			(* If not in cloud, use a private JVM with extra-large memory allocation *)
 			$jvm = JLink`GetJVM[JLink`InstallJava[JLink`ForceLaunch -> True, Default -> False, JLink`JVMArguments -> GetMaxJVMMemory[]]];
 			$isPrivateJVM = True
@@ -38,10 +40,10 @@ initJava[] :=
 	];
 
 deinitJava[] :=
-    If[$isPrivateJVM,
-	    Quiet[JLink`UninstallJava[$jvm]];
-	    $jvm = Null;
-    ];
+	If[$isPrivateJVM,
+		Quiet[JLink`UninstallJava[$jvm]];
+		$jvm = Null;
+	];
 
 (*Convert pixel types and color space.*)
 BioFormatsToMathematicaTypeAndColorSpace[type_Integer] :=
@@ -225,66 +227,93 @@ $BioFormatsAvailableElements = {"ImageList", "OMEXMLMetaInformation", "OriginalM
 
 GetBioFormatsElements[___] := "Elements" -> $BioFormatsAvailableElements;
 
-GetBioFormatsSeriesCount[format_][file_] := Block[{res},
-	initJava[];
-	res = Quiet[ReadSeriesCount[file]];
-	deinitJava[];
-	If[!Internal`PositiveMachineIntegerQ[res],
-		Message[Import::fmterr, format];
-		Return[$Failed];
-	];
-	Return["SeriesCount" -> res];
-];
-
-GetBioFormatsImageList[format_][series_][file_] := Block[{seriesCount, res},
-	If[MatchQ[series, All | Automatic],
-		initJava[];
-		seriesCount = Quiet[ReadSeriesCount[file]];
-		If[!Internal`PositiveMachineIntegerQ[seriesCount],
+GetBioFormatsSeriesCount[format_][file_] :=
+	Block[{res, $jvm, $isPrivateJVM},
+		Try[
+			initJava[];
+			res = Quiet[ReadSeriesCount[file]];
+			,
 			deinitJava[];
+		];
+		If[!Internal`PositiveMachineIntegerQ[res],
 			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
-		res = Quiet[Map[ReadImage[file, #]&, Range[seriesCount]]];
-		deinitJava[];
+		Return["SeriesCount" -> res];
+	];
+
+GetBioFormatsImageList[format_][series_][file_] :=
+	Block[{seriesCount, res, img, $jvm, $isPrivateJVM},
+		If[MatchQ[series, All | Automatic],
+			Try[
+				initJava[];
+				seriesCount = Quiet[ReadSeriesCount[file]];
+				If[!Internal`PositiveMachineIntegerQ[seriesCount],
+					deinitJava[];
+					Message[Import::fmterr, format];
+					Return[$Failed];
+				];
+				res =
+					Map[
+						(
+							img = Quiet[ReadImage[file, #]];
+							If[FailureQ[img],
+								deinitJava[];
+								Message[Import::fmterr, format];
+								Return[$Failed, Block];
+							];
+							img
+						)&,
+						Range[seriesCount]
+					];
+				,
+				deinitJava[];
+			];
+			Return["ImageList" -> res];
+			,
+			Try[
+				initJava[];
+				res = Quiet[ReadImage[file, series]];
+				,
+				deinitJava[];
+			];
+			If[FailureQ[res],
+				Message[Import::fmterr, format];
+				Return[$Failed];
+			];
+			Return["ImageList" -> series -> res];
+		];
+	];
+
+GetBioFormatsOriginalMetaInformation[format_][file_] :=
+	Block[{res, $jvm, $isPrivateJVM},
+		Try[
+			initJava[];
+			res = Quiet[ReadOriginalMetadata[file]];
+			,
+			deinitJava[];
+		];
 		If[res === $Failed,
 			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
-		Return["ImageList" -> res];
-		,
-		initJava[];
-		res = Quiet[ReadImage[file, series]];
-		deinitJava[];
+		Return["OriginalMetaInformation" -> res];
+	];
+
+GetBioFormatsOMEXMLMetaInformation[format_][file_] :=
+	Block[{res, $jvm, $isPrivateJVM},
+		Try[
+			initJava[];
+			res = Quiet[ReadOMEXMLMetadata[file]];
+			,
+			deinitJava[];
+		];
 		If[res === $Failed,
 			Message[Import::fmterr, format];
 			Return[$Failed];
 		];
-		Return["ImageList" -> series -> res];
+		Return["OMEXMLMetaInformation" -> res];
 	];
-];
-
-GetBioFormatsOriginalMetaInformation[format_][file_] := Block[{res},
-	initJava[];
-	res = Quiet[ReadOriginalMetadata[file]];
-	deinitJava[];
-	If[res === $Failed,
-		Message[Import::fmterr, format];
-		Return[$Failed];
-	];
-	Return["OriginalMetaInformation" -> res];
-];
-
-GetBioFormatsOMEXMLMetaInformation[format_][file_] := Block[{res},
-	initJava[];
-	res = Quiet[ReadOMEXMLMetadata[file]];
-	deinitJava[];
-	If[res === $Failed,
-		Message[Import::fmterr, format];
-		Return[$Failed];
-	];
-	Return["OMEXMLMetaInformation" -> res];
-];
 
 If[$VersionNumber < 13.1,
 	ImportExport`RegisterImport[#,
